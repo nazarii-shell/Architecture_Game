@@ -17,10 +17,7 @@ public static class GameManager
         return name;
     }
 
-    public static void OnGameOver(object? sender, IPlayer winner)
-    {
-        Console.WriteLine($"Game Over.\nWinner: {winner.Username}");
-    }
+
 
     public static IGame CreateGame(string game)
     {

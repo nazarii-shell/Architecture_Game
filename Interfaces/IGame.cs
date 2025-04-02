@@ -1,13 +1,13 @@
 namespace Game.Interfaces;
 
-public interface IGame
+public interface IGame : ISubject
 {
     public bool RulesAreRead { get; set; }
     public string Name { get; }
     public List<IComponent> components { get; set; }
     public int PlayserRequired {get; set;}
-    public event EventHandler<IPlayer>? gameOverHandler;
-    public List<IPlayer> Players { get; set; }
+    public event EventHandler<Player>? gameOverHandler;
+    public List<Player> Players { get; set; }
     public List<ICell> Board { get; set; }
 
     public void InitializeField();
@@ -18,5 +18,4 @@ public interface IGame
     public void Play();
     public void WelcomeScreen();
     
-    public void GameOver(IPlayer winner);
 }

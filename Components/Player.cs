@@ -2,7 +2,7 @@ using Game.Interfaces;
 
 namespace Game;
 
-public class Player : IPlayer
+public class Player
 {
     private string _username;
     private int _position;

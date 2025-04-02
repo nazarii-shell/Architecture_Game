@@ -7,6 +7,7 @@ using Game.Interfaces;
 public class Chess : IGame
 {
     private bool _rulesAreRead = false;
+    private List<IGameObserver> _observers = new List<IGameObserver>();
 
     public bool RulesAreRead
     {
@@ -30,18 +31,20 @@ public class Chess : IGame
     }
 
     private List<ICell> _board = [];
-    private List<IPlayer> _players;
+    private List<Player> _players;
 
     public Chess(IRules rules)
     {
-        Players = new List<IPlayer>(rules.RequiredPlayers);
+        Players = new List<Player>(rules.RequiredPlayers);
         _playerRequired = rules.RequiredPlayers;
         this.components = rules.Components;
     }
 
-    public event EventHandler<IPlayer>? gameOverHandler;
+    public event EventHandler<Player>? gameOverHandler;
+    public event EventHandler<PlayerMoveEventArgs>? playerMoveHandler;
 
-    public List<IPlayer> Players
+
+    public List<Player> Players
     {
         get => _players;
         set => _players = value;
@@ -61,7 +64,7 @@ public class Chess : IGame
         return res == "y";
     }
 
-    public IPlayer GetWinner()
+    public Player GetWinner()
     {
         Random rnd = new();
         int playerIndex = rnd.Next(0, _players.Count);
@@ -77,18 +80,22 @@ public class Chess : IGame
     {
         _players.ForEach(p =>
         {
+            IComponent selectedComponent;
             Console.WriteLine($"{p.Username}'s move: ");
             Console.WriteLine("Choose action, type number");
+            
             for (int i = 0; i < components.Count; i++)
             {
                 var component = components[i];
                 if (component.Fucntion != null)
                 {
-                    Console.WriteLine($"{i + 1}) {component.Fucntion}");
+                    Console.WriteLine($"{i}) {component.Fucntion}");
                 }
             }
 
-            Console.ReadLine();
+            int index = int.Parse(Console.ReadLine());
+            selectedComponent = components[index];
+            Notify(p, selectedComponent);
         });
     }
 
@@ -102,7 +109,7 @@ public class Chess : IGame
         }
     }
 
-    public void AddPlayer(IPlayer player)
+    public void AddPlayer(Player player)
     {
         if (_players.Count + 1 > _playerRequired) throw new Exception("Can't add more players for " + Name);
         _players.Add(player);
@@ -111,8 +118,8 @@ public class Chess : IGame
     public void Play()
     {
         MovePlayers();
-        IPlayer winner = GetWinner();
-        GameOver(winner);
+        Player winner = GetWinner();
+        Notify(winner);
     }
 
     public void WelcomeScreen()
@@ -137,9 +144,30 @@ public class Chess : IGame
         }
     }
 
+    
 
-    public void GameOver(IPlayer winner)
+    // The subscription management methods.
+    public void Attach(IGameObserver gameObserver)
+    {
+        gameOverHandler += gameObserver.OnGameOver;
+        playerMoveHandler += gameObserver.OnPlayerMove;
+    }
+
+    public void Detach(IGameObserver gameObserver)
+    {
+        gameOverHandler -= gameObserver.OnGameOver;
+        playerMoveHandler += gameObserver.OnPlayerMove;
+    }
+
+
+    // Trigger an update in each subscriber.
+    public void Notify(Player winner)
     {
         gameOverHandler?.Invoke(this, winner);
+    }
+
+    public void Notify(Player player, IComponent component)
+    {
+        playerMoveHandler?.Invoke(this, new PlayerMoveEventArgs(player, component));
     }
 }
