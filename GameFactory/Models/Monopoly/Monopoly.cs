@@ -7,7 +7,6 @@ using Game.Interfaces;
 public class Monopoly : IGame
 {
     private bool _rulesAreRead = false;
-    private List<IGameObserver> _observers = new List<IGameObserver>();
 
     public bool RulesAreRead
     {
